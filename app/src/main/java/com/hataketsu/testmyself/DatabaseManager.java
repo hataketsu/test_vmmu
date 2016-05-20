@@ -18,9 +18,11 @@ public class DatabaseManager {
         if (database == null) {
             database = SQLiteDatabase.openDatabase(Environment.getExternalStorageDirectory().getPath() + "/Download/dethixx.db", null, SQLiteDatabase.NO_LOCALIZED_COLLATORS | SQLiteDatabase.CREATE_IF_NECESSARY);
         }
+
         return database;
     }
     public static Cursor query(String sql) {
         return getDatabase().rawQuery(sql, null);
     }
+
 }

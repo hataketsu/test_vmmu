@@ -40,7 +40,7 @@ public class TestScrollingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_test_scrolling);
 
         Intent intent = getIntent();
-        numberQuestion = intent.getIntExtra("number", -1);
+        numberQuestion = intent.getIntExtra("number", -1) + 1;
         String sttchuong = intent.getStringExtra("sttchuong");
         tenchuong = intent.getStringExtra("tenchuong");
         testTextView = ((TextView) findViewById(R.id.test_message));
@@ -48,8 +48,7 @@ public class TestScrollingActivity extends AppCompatActivity {
         listView = ((ListView) findViewById(R.id.test_lv));
         adapter = new QuestionAdapter(this, -1);
         listView.setAdapter(adapter);
-        String query = String.format("select cauhoiid,noidung,loaicauhoiid from cauhoi where chuongid=%s order by random() limit %d", sttchuong, numberQuestion);
-        new QuestionAsyncTask().execute(query);
+        new QuestionAsyncTask().execute(sttchuong);
     }
 
 
@@ -70,21 +69,25 @@ public class TestScrollingActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... strings) {
             int count = 1;
-            Cursor questionCursor = DatabaseManager.getDatabase().rawQuery(strings[0], null);
-            while (questionCursor.moveToNext()) {
-                QuestionEntry entry = new QuestionEntry();
-                String question = count++ + " : [" + questionCursor.getString(2) + "] : " + questionCursor.getString(1);
-                entry.setQuestion(question);
-                Cursor answerCursor = DatabaseManager.getDatabase().rawQuery("select noidung,ladapan from dapan where cauhoiid==" + questionCursor.getString(0) + " order by random()", null);
-                while (answerCursor.moveToNext()) {
-                    String text = answerCursor.getString(0);
-                    boolean result = true;
-                    if (answerCursor.getString(1).equals("0")) {
-                        result = false;
-                    }
-                    entry.addAnswer(text, result);
+            String id = strings[0];
+            Cursor minCursor = DatabaseManager.query("select min(passedTime) from cauhoi where chuongid=" + id);
+            minCursor.moveToNext();
+            int min = Integer.parseInt(minCursor.getString(0));
+            while (count < numberQuestion) {
+                String query = String.format("select cauhoiid,noidung,passedTime from cauhoi where chuongid=%s and passedTime=%d order by random() limit %d", id, min, numberQuestion - count);
+                Cursor questionCursor = DatabaseManager.query(query);
+                while (questionCursor.moveToNext()) {
+                    QuestionEntry entry = QuestionEntry.fromCursor(questionCursor, count++);
+                    publishProgress(entry);
                 }
-                publishProgress(entry);
+                query = String.format("select min(passedTime) from cauhoi where chuongid=%s and passedTime>%d", id, min);
+                minCursor = DatabaseManager.query(query + id);
+                minCursor.moveToNext();
+                String minString = minCursor.getString(0);
+                if (minString != null)
+                    min = Integer.parseInt(minString);
+
+                else return null;
             }
             return null;
         }
