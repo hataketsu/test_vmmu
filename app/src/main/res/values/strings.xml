@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Test Myself</string>
+    <string name="select_detail">Chọn môn học</string>
+    <string name="startText">Bắt đầu</string>
+    <string name="number_detail">Số câu hỏi </string>
+    <string name="number_default">10</string>
+    <string name="title_activity_test_scrolling">TestScrollingActivity</string>
+    <string name="check">Kiểm tra</string>
+
+</resources>
